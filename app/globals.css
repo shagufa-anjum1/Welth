@@ -124,3 +124,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+@layer utilities {
+  .gradient {
+    @apply bg-gradient-to-r from-primary to-secondary;
+  }
+
+  .gradient-title {
+    @apply bg-gradient-to-r from-primary-foreground to-secondary-foreground;
+  }
+
+  
+}
