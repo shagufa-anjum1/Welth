@@ -128,12 +128,24 @@
 
 @layer utilities {
   .gradient {
-    @apply bg-gradient-to-r from-primary to-secondary;
+    @apply bg-gradient-to-br from-blue-600 to-purple-600;
   }
 
   .gradient-title {
-    @apply bg-gradient-to-r from-primary-foreground to-secondary-foreground;
+    @apply bg-gradient-to-br from-blue-600 to-purple-600 font-extrabold tracking-tighter pr-2 pb-2 text-transparent bg-clip-text;
   }
+}
 
-  
+.Hero-image-wrapper{
+  perspective: 1000px;
+}
+
+.Hero-image{
+  transform: rotateX(15deg) scale(1);
+  transition: transform 0.5s ease-out;
+  will-change: transform;
+}
+
+.Hero-image.scrolled{
+  transform: rotateX(-3deg) scale(0.9) translateY(40);
 }
