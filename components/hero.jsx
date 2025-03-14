@@ -31,7 +31,7 @@ const HeroSelection = () => {
     <div className='pb-20 px-4 min-w-screen'>
       <div className='w-full mx-auto text-center min-h-screen'>
         <h1 className='text-5xl md:text-8xl lg:text-[105px] pb-6 gradient-title '>
-          Smarter Finance. <br /> Better Future
+          Manage your finances with Intelligence
         </h1>
         <p className='text-xl text-gray-600 mb-8 max-w-2xl mx-auto'>
           Simplify financial management. Track, analyze, and optimize your spending with real-time AI insights—for a smarter, better future.
@@ -39,13 +39,13 @@ const HeroSelection = () => {
 
         <div className='flex justify-center space-x-4'>
           <Link href='/dashboard'>
-            <button size="lg" className='px-8'>
+            <button size="lg" className='px-8 border bg-black text-white rounded-md p-2'>
               Get Started
             </button>
           </Link>
 
           <Link href='/dashboard'>
-            <button size="lg" variant="outline" className='px-8  '>
+            <button size="lg" variant="outline" className='px-8 border p-2 rounded-md '>
               Watch Demo
             </button>
           </Link>
