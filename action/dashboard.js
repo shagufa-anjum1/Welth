@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/prisma"; // Ensure db is correctly imported
 import { auth } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 
 const serializeTransaction = (obj) => {
    const serialized = { ...obj };
@@ -58,8 +59,16 @@ export async function createAccount(data) {
             },
         });
 
+        const serializedAccount = serializeTransaction(account); // Fixed typo: serializeTransation → serializeTransaction
+        
+        revalidatePath("/dashboard"); // Fixed typo: revalidatePath → revalidatePath
+        return {success: true, data: serializedAccount}; // Fixed typo: success → { success: true, account: serializedAccount }
+
     } catch (error) {
         console.error(error); // Log the error properly
-        throw new Error("Something went wrong");
+        throw new Error(error.message); // Throw the error message
+
     }
+
+    
 }
