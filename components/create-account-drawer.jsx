@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
@@ -19,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"; // ✅ shadcn/ui Select
+import { Switch } from "./ui/switch";
+import { Button } from "./ui/button";
 
 const CreateAccountDrawer = ({ children }) => {
   const [open, setOpen] = useState(false);
@@ -40,7 +43,7 @@ const CreateAccountDrawer = ({ children }) => {
     },
   });
 
-  const onSubmit = (data) => {
+  const onSubmit = async(data) => {
     console.log(data);
     reset(); // Reset form
     setOpen(false); // Close drawer on submit
@@ -125,27 +128,37 @@ const CreateAccountDrawer = ({ children }) => {
             </div>
 
             {/* Default Account */}
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="isDefault"
-                {...register("isDefault")}
-                className="text-blue-600 border-gray-300 rounded"
-              />
-              <label htmlFor="isDefault" className="text-sm text-gray-700">
-                Set as default account
-              </label>
-            </div>
-  
+            <div className="flex items-center justify-between rounded-lg border p-3">
+               <div className="space-y-0.5">
+                  <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer">
+                    Set as Default
+                  </label>
+                  <p className="text-sm text-gray-500">
+                    This account will be selected by default for transactions
+                  </p>
+                </div>
+              
+                <Switch
+                  id="isDefault"
+                  onCheckedChange={(checked) => setValue("isDefault", checked)}
+                  checked={watch("isDefault")}
+                />
+              </div>
             
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-            >
-              Create Account
-            </button>
+            <div className="flex gap-4 pt-4">
+                <DrawerClose asChild>
+                  <Button type="button" variant="outline" className="flex-1">
+                    Cancel
+                  </Button>
+                </DrawerClose>
+
+                <Button type="submit" className="flex-1">
+                  Create Account
+                </Button>
+              </div>
+
           </form>
         </div>
       </DrawerContent>
