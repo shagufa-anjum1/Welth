@@ -1,20 +1,25 @@
 "use server";
 
-import { db } from "@/lib/prisma"; // Ensure db is correctly imported
+import { db } from "@/lib/prisma"; // Prisma client instance
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
-// Serialize transaction/account object if needed
+// Serialize account/transaction object to convert BigInt (or Decimal) fields into numbers
 const serializeTransaction = (obj) => {
   const serialized = { ...obj };
 
-  if (obj.balance) {
+  if (obj.balance && typeof obj.balance.toNumber === "function") {
     serialized.balance = obj.balance.toNumber();
+  }
+
+  if (obj.amount && typeof obj.amount.toNumber === "function") {
+    serialized.amount = obj.amount.toNumber();
   }
 
   return serialized;
 };
 
+// Create a new account function
 export async function createAccount(data) {
   try {
     const { userId } = await auth();
@@ -43,10 +48,10 @@ export async function createAccount(data) {
       where: { userId: user.id },
     });
 
-    const ShouldBeDefault = userAccounts.length === 0 ? true : data.isDefault;
+    const shouldBeDefault = userAccounts.length === 0 ? true : data.isDefault;
 
     // If this account should be default, set others to false
-    if (ShouldBeDefault) {
+    if (shouldBeDefault) {
       await db.account.updateMany({
         where: { userId: user.id, isDefault: true },
         data: { isDefault: false },
@@ -59,26 +64,25 @@ export async function createAccount(data) {
         ...data,
         userId: user.id,
         balance: balanceFloat,
-        isDefault: ShouldBeDefault,
+        isDefault: shouldBeDefault,
       },
     });
 
     const serializedAccount = serializeTransaction(account);
 
-    // Revalidate the dashboard page
+    // Revalidate the dashboard page after creating account
     revalidatePath("/dashboard");
 
     return { success: true, data: serializedAccount };
-
   } catch (error) {
     console.error("Create Account Error:", error.message);
     throw new Error(error.message);
   }
 }
 
-
+// Get user accounts function
 export async function getUserAccounts() {
-
+  try {
     const { userId } = await auth();
 
     if (!userId) {
@@ -94,6 +98,27 @@ export async function getUserAccounts() {
       throw new Error("User not found");
     }
 
-    const accounts = await db.account.findMany
+    // Fetch all accounts belonging to the user
+    const accounts = await db.account.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        _count: {
+          select: {
+            transactions: true,
+          },
+        },
+      },
+    });
 
+    // Serialize each account (if needed)
+    const serializedAccounts = accounts.map((account) =>
+      serializeTransaction(account)
+    );
+
+    return serializedAccounts;
+  } catch (error) {
+    console.error("Get User Accounts Error:", error.message);
+    throw new Error(error.message);
+  }
 }
