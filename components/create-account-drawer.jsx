@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Drawer,
   DrawerClose,
@@ -9,9 +9,11 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "./ui/drawer";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { accountSchema } from "@/app/lib/schema";
+
 import { Input } from "./ui/input";
 import {
   Select,
@@ -19,13 +21,21 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"; // ✅ shadcn/ui Select
+} from "@/components/ui/select";
+
 import { Switch } from "./ui/switch";
 import { Button } from "./ui/button";
 
-const CreateAccountDrawer = ({ children }) => {
+import useFetch from "@/hooks/use-fetch";
+import { createAccount } from "@/action/dashboard";
+
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+const CreateAccountDrawer = ({ children, userId }) => {
   const [open, setOpen] = useState(false);
 
+  // ✅ react-hook-form setup with zod validation
   const {
     register,
     handleSubmit,
@@ -37,16 +47,43 @@ const CreateAccountDrawer = ({ children }) => {
     resolver: zodResolver(accountSchema),
     defaultValues: {
       name: "",
-      type: "", // Leave blank to show placeholder first
+      type: "",
       balance: "",
       isDefault: false,
     },
   });
 
-  const onSubmit = async(data) => {
-    console.log(data);
-    reset(); // Reset form
-    setOpen(false); // Close drawer on submit
+  // ✅ Custom hook for API call
+  const {
+    data: newAccount,
+    error,
+    fn: createAccountFn,
+    loading: createAccountLoading,
+  } = useFetch(createAccount);
+
+  // ✅ Success handler - runs when newAccount is successfully created
+  useEffect(() => {
+    if (newAccount && !createAccountLoading) {
+      toast.success("Account created successfully!");
+      reset();        // ✅ Reset the form fields
+      setOpen(false); // ✅ Close the drawer
+    }
+  }, [newAccount, createAccountLoading]); // ✅ No reset / setOpen here!
+
+  // ✅ Error handler - runs when there is an error in createAccount
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message || "An error occurred. Please try again.");
+    }
+  }, [error]);
+
+  // ✅ Form submission handler
+  const onSubmit = async (formData) => {
+    try {
+      await createAccountFn({ ...formData, userId });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -60,7 +97,7 @@ const CreateAccountDrawer = ({ children }) => {
 
         <div className="px-4 py-6">
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            {/* Account Name */}
+            {/* ✅ Account Name */}
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium text-gray-700">
                 Account Name
@@ -73,13 +110,11 @@ const CreateAccountDrawer = ({ children }) => {
                 className="w-full"
               />
               {errors.name && (
-                <p className="text-sm text-red-500">
-                  {errors.name.message}
-                </p>
+                <p className="text-sm text-red-500">{errors.name.message}</p>
               )}
             </div>
 
-            {/* Account Type */}
+            {/* ✅ Account Type */}
             <div className="space-y-2">
               <label htmlFor="type" className="text-sm font-medium text-gray-700">
                 Account Type
@@ -87,12 +122,10 @@ const CreateAccountDrawer = ({ children }) => {
 
               <Select
                 onValueChange={(value) => setValue("type", value)}
-                value={watch("type")} // ✅ controlled value for correct display
+                value={watch("type")}
               >
                 <SelectTrigger id="type" className="w-full">
-                  <SelectValue
-                    placeholder="Select Account Type" // ✅ placeholder visible if no value selected
-                  />
+                  <SelectValue placeholder="Select Account Type" />
                 </SelectTrigger>
 
                 <SelectContent>
@@ -106,59 +139,65 @@ const CreateAccountDrawer = ({ children }) => {
               )}
             </div>
 
-            {/* Initial Balance */}
-
+            {/* ✅ Initial Balance */}
             <div className="space-y-2">
-              <label htmlFor="Balance" className="text-sm font-medium text-gray-700">
+              <label htmlFor="balance" className="text-sm font-medium text-gray-700">
                 Initial Balance
               </label>
               <Input
-                type="Number"
-                id="Balance"
+                type="number"
+                id="balance"
                 step="0.01"
-                placeholder="e.g. 0000.00"
-                {...register("Balance")}
+                placeholder="e.g. 1000.00"
+                {...register("balance")}
                 className="w-full"
               />
-              {errors.Balance && (
-                <p className="text-sm text-red-500">
-                  {errors.Balance.message}
-                </p>
+              {errors.balance && (
+                <p className="text-sm text-red-500">{errors.balance.message}</p>
               )}
             </div>
 
-            {/* Default Account */}
+            {/* ✅ Default Account */}
             <div className="flex items-center justify-between rounded-lg border p-3">
-               <div className="space-y-0.5">
-                  <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer">
-                    Set as Default
-                  </label>
-                  <p className="text-sm text-gray-500">
-                    This account will be selected by default for transactions
-                  </p>
-                </div>
-              
-                <Switch
-                  id="isDefault"
-                  onCheckedChange={(checked) => setValue("isDefault", checked)}
-                  checked={watch("isDefault")}
-                />
+              <div className="space-y-0.5">
+                <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer">
+                  Set as Default
+                </label>
+                <p className="text-sm text-gray-500">
+                  This account will be selected by default for transactions.
+                </p>
               </div>
-            
 
-            {/* Submit Button */}
+              <Switch
+                id="isDefault"
+                onCheckedChange={(checked) => setValue("isDefault", checked)}
+                checked={watch("isDefault")}
+              />
+            </div>
+
+            {/* ✅ Submit & Cancel Buttons */}
             <div className="flex gap-4 pt-4">
-                <DrawerClose asChild>
-                  <Button type="button" variant="outline" className="flex-1">
-                    Cancel
-                  </Button>
-                </DrawerClose>
-
-                <Button type="submit" className="flex-1">
-                  Create Account
+              <DrawerClose asChild>
+                <Button type="button" variant="outline" className="flex-1">
+                  Cancel
                 </Button>
-              </div>
+              </DrawerClose>
 
+              <Button
+                type="submit"
+                className="flex-1"
+                disabled={createAccountLoading}
+              >
+                {createAccountLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
+            </div>
           </form>
         </div>
       </DrawerContent>
