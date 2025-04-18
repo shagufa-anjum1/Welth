@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch"; // ✅ If you have a custom Swi
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import useFetch from "@/hooks/use-fetch";
-import { updateDefaultAccount } from "@/action/accounts";
+import { updateDefaultAccount } from "@/actions/accounts";
 import { toast } from "sonner";
 
 const AccountCard = ({ account }) => {

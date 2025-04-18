@@ -27,7 +27,7 @@ import { Switch } from "./ui/switch";
 import { Button } from "./ui/button";
 
 import useFetch from "@/hooks/use-fetch";
-import { createAccount } from "@/action/dashboard";
+import { createAccount } from "@/actions/dashboard";
 
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
