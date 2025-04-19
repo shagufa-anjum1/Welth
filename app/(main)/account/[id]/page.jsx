@@ -1,6 +1,8 @@
 import { getAccountWithTransactions } from "@/actions/accounts";
 import { notFound } from "next/navigation";
-import React from "react";
+import React, { Suspense } from "react";
+import { BarLoader } from "react-spinners";
+import TransactionTable from "../_components/transaction-table";
 
 const AccountsPage = async ({ params }) => {
   const accountData = await getAccountWithTransactions(params.id);
@@ -12,9 +14,10 @@ const AccountsPage = async ({ params }) => {
   const { transactions, ...account } = accountData;
 
   return (
-    <div className="space-y-8 px-5 flex gap-4 items-end justify-between">
+    <div className="space-y-8 px-5">
+     <div className=" flex gap-4 items-end justify-between">
       <div>
-        <h1 className="text-5xl sm:text-6xl font-bold tracking-tight gradient-title capitalize">{account.name}</h1>
+        <h1 className="text-5xl sm:text-6xl font-bold  gradient-title capitalize">{account.name}</h1>
         <p className="text-muted-foreground">
         {account.type.charAt(0).toUpperCase() + account.type.slice(1).toLowerCase()} Account</p>
       </div>
@@ -24,11 +27,21 @@ const AccountsPage = async ({ params }) => {
         <div className="text-xl sm:text-2xl font-bold">${parseFloat(account.balance).toFixed(2)}</div>
         <p className="text-muted-foreground text-sm">{account._count.transactions} Transactions</p>
       </div>
+      </div>
 
         {/* chart Section */}
 
         {/* Transaction Table */}
-      
+         <Suspense 
+         fallback={<BarLoader className="mt-4" width={"100%"} color="#9333ea"/>}
+         
+        >
+          {/* @ts-expect-error Server Component */}
+          <TransactionTable transactions={transactions} />
+         
+        </Suspense>   
+
+        
     </div>
   );
 };
