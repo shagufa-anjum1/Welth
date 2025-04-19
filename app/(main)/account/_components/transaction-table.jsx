@@ -1,9 +1,12 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { categoryColors } from '@/data/categories';
 import { format } from 'date-fns';
+import { Clock } from 'lucide-react';
 import React from 'react';
 
 const TransactionTable = ({ transactions }) => {
@@ -61,8 +64,31 @@ const TransactionTable = ({ transactions }) => {
                   {transaction.category}
                   </span>
                   </TableCell>
-                  <TableCell className="text-right">{transaction.amount}</TableCell>
-                  <TableCell>{transaction.recurring ? "Yes" : "No"}</TableCell>
+                  <TableCell className="text-right font-medium"
+                  style={{ 
+                    color: transaction.type === "EXPENSE" ? "red" : "green" ,
+                  }}
+                  >
+                  {transaction.type === "EXPENSE" ? "-" : "+"}$
+                  {transaction.amount.toFixed(2)}
+                  </TableCell>
+
+                  <TableCell>
+                  {transaction.recurring ? (
+                     <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>Hover</TooltipTrigger>
+                            <TooltipContent>
+                              <p>Add to library</p>
+                            </TooltipContent>
+                          </Tooltip>
+                      </TooltipProvider>
+                  ) : (
+                    
+                   <Badge variant="outline" className="gap-1">
+                   <Clock className='h-3 w-3'></Clock>On-Time</Badge>
+                  )}
+                  </TableCell>
                   <TableCell className="w-[50px]">{/* Action buttons */}</TableCell>
                 </TableRow>
               ))
