@@ -162,7 +162,7 @@ const TransactionTable = ({ transactions }) => {
                   </TableCell>
 
                   <TableCell>
-                    {/* Action buttons can go here */}
+                  
                         <DropdownMenu>
 
                           <DropdownMenuTrigger asChild>
