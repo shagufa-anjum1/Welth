@@ -50,6 +50,7 @@ const TransactionTable = ({ transactions }) => {
     field: 'date',
     direction: 'ascending',
   });
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const handleSort = (field) => {
     setSortConfig((current) => ({
@@ -61,8 +62,24 @@ const TransactionTable = ({ transactions }) => {
     }));
   };
 
+  const handleSelect = (id) => {
+    setSelectedIds((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    setSelectedIds((current) =>
+      current.length === transactions.length
+        ? []
+        : transactions.map((t) => t.id)
+    );
+  };
+
   const handleEdit = (id) => {
-    router.push(`/transactions/edit/${id}`);
+    router.push(`/transaction/create?edit=${id}`);
   };
 
   const handleDelete = (id) => {
@@ -87,13 +104,57 @@ const TransactionTable = ({ transactions }) => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[50px]"><Checkbox /></TableHead>
-              <TableHead onClick={() => handleSort('date')} className="cursor-pointer">Date</TableHead>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={selectedIds.length === transactions.length && transactions.length > 0}
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort('date')}
+              >
+                <div className="flex items-center">
+                  Date
+                  {sortConfig.field === 'date' &&
+                    (sortConfig.direction === 'asc' ? (
+                      <ChevronUp className="ml-1 h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="ml-1 h-4 w-4" />
+                    ))}
+                </div>
+              </TableHead>
               <TableHead>Description</TableHead>
-              <TableHead onClick={() => handleSort('category')} className="cursor-pointer">Category</TableHead>
-              <TableHead onClick={() => handleSort('amount')} className="cursor-pointer text-right">Amount</TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort('category')}
+              >
+                <div className="flex items-center">
+                  Category
+                  {sortConfig.field === 'category' &&
+                    (sortConfig.direction === 'asc' ? (
+                      <ChevronUp className="ml-1 h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="ml-1 h-4 w-4" />
+                    ))}
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer text-right"
+                onClick={() => handleSort('amount')}
+              >
+                <div className="flex items-center justify-end">
+                  Amount
+                  {sortConfig.field === 'amount' &&
+                    (sortConfig.direction === 'asc' ? (
+                      <ChevronUp className="ml-1 h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="ml-1 h-4 w-4" />
+                    ))}
+                </div>
+              </TableHead>
               <TableHead>Recurring</TableHead>
-              <TableHead></TableHead>
+              <TableHead className="w-[50px]" />
             </TableRow>
           </TableHeader>
 
@@ -101,49 +162,62 @@ const TransactionTable = ({ transactions }) => {
             {sortedTransactions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground">
-                  No transactions found.
+                  No transactions found
                 </TableCell>
               </TableRow>
             ) : (
-              sortedTransactions.map((tx) => (
-                <TableRow key={tx.id}>
-                  <TableCell><Checkbox /></TableCell>
-                  <TableCell>{format(new Date(tx.createdAt), 'dd MMM yyyy')}</TableCell>
-                  <TableCell>{tx.description}</TableCell>
+              sortedTransactions.map((transaction) => (
+                <TableRow key={transaction.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.includes(transaction.id)}
+                      onCheckedChange={() => handleSelect(transaction.id)}
+                    />
+                  </TableCell>
+                  <TableCell>{format(new Date(transaction.date), 'dd MMM yyyy')}</TableCell>
+                  <TableCell>{transaction.description}</TableCell>
                   <TableCell className="capitalize">
                     <span
                       style={{
-                        backgroundColor: categoryColors[tx.category] || '#f0f0f0',
+                        backgroundColor: categoryColors[transaction.category] || '#f0f0f0',
                         color: '#fff',
                         padding: '4px 8px',
                         borderRadius: '4px',
                       }}
                     >
-                      {tx.category}
+                      {transaction.category}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right font-medium" style={{ color: tx.type === 'EXPENSE' ? 'red' : 'green' }}>
-                    {tx.type === 'EXPENSE' ? '-' : '+'}${tx.amount.toFixed(2)}
+                  <TableCell
+                    className={`text-right font-medium ${transaction.type === 'EXPENSE' ? 'text-red-500' : 'text-green-500'}`}
+                  >
+                    {transaction.type === 'EXPENSE' ? '-' : '+'}${transaction.amount.toFixed(2)}
                   </TableCell>
                   <TableCell>
-                    {tx.recurring ? (
+                    {transaction.isRecurring ? (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger>
-                            <Badge className="gap-1 bg-purple-100 text-purple-800 hover:bg-purple-200">
+                            <Badge
+                              variant="secondary"
+                              className="gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200"
+                            >
                               <RefreshCw className="h-3 w-3" />
-                              {RECURRING_INTERVALS[tx.recurringInterval]}
+                              {RECURRING_INTERVALS[transaction.recurringInterval]}
                             </Badge>
                           </TooltipTrigger>
                           <TooltipContent>
-                            Next: {format(new Date(tx.nextRecurringDate), 'dd MMM yyyy')}
+                            <div className="text-sm">
+                              <div className="font-medium">Next Date:</div>
+                              <div>{format(new Date(transaction.nextRecurringDate), 'PPP')}</div>
+                            </div>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     ) : (
                       <Badge variant="outline" className="gap-1">
                         <Clock className="h-3 w-3" />
-                        On-Time
+                        One-time
                       </Badge>
                     )}
                   </TableCell>
@@ -154,11 +228,15 @@ const TransactionTable = ({ transactions }) => {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(transaction.id)}>Edit</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleEdit(tx.id)}>Edit</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(tx.id)}>Delete</DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => handleDelete(transaction.id)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
