@@ -1,9 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useRouter } from 'next/navigation'; // Importing the useRouter hook from Next.js
+import { Badge } from '@/components/ui/badge'; // Badge component for displaying tags or labels
+import { Button } from '@/components/ui/button'; // Button component for rendering buttons
+import { Checkbox } from '@/components/ui/checkbox'; // Checkbox component for rendering checkboxes
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu'; // Dropdown menu components
 import {
   Table,
   TableBody,
@@ -19,18 +19,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/ui/table'; // Table components for rendering data in a tabular format
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { categoryColors } from '@/data/categories';
-import { format } from 'date-fns';
-import { ChevronDown, ChevronUp, Clock, MoreHorizontal, RefreshCw } from 'lucide-react';
-import React, { useState } from 'react';
+} from '@/components/ui/tooltip'; // Tooltip components for hoverable information pop-ups
+import { categoryColors } from '@/data/categories'; // Category colors, likely for categorizing transactions
+import { format } from 'date-fns'; // Date formatting utility
+import { ChevronDown, ChevronUp, Clock, MoreHorizontal, RefreshCw, Search } from 'lucide-react'; // Icon components from lucide-react
+import React, { useState } from 'react'; // React hooks for managing state
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+// Transaction intervals for recurring transactions
 const RECURRING_INTERVALS = {
   DAILY: 'Daily',
   WEEKLY: 'Weekly',
@@ -51,6 +54,10 @@ const TransactionTable = ({ transactions }) => {
     direction: 'ascending',
   });
   const [selectedIds, setSelectedIds] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [recurringFilter, setRecurringFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleSort = (field) => {
     setSortConfig((current) => ({
@@ -93,25 +100,32 @@ const TransactionTable = ({ transactions }) => {
   const sortedTransactions = [...transactions].sort((a, b) => {
     const aVal = a[sortConfig.field];
     const bVal = b[sortConfig.field];
-    return aVal < bVal ? (sortConfig.direction === 'ascending' ? -1 : 1)
-         : aVal > bVal ? (sortConfig.direction === 'ascending' ? 1 : -1)
-         : 0;
+    return aVal < bVal
+      ? sortConfig.direction === 'ascending'
+        ? -1
+        : 1
+      : aVal > bVal
+      ? sortConfig.direction === 'ascending'
+        ? 1
+        : -1
+      : 0;
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [recurringFilter, setRecurringFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  
+  const handleBulkDelete = async () => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${selectedIds.length} transactions?`
+      )
+    )
+      return;
 
+    deleteFn(selectedIds);
+  };
 
   return (
     <div className="space-y-4">
-     
-         {/* Filters */}
-
-         
-      <div className="flex flex-col sm:flex-row gap-4">
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -185,8 +199,7 @@ const TransactionTable = ({ transactions }) => {
       </div>
 
 
-
-     {/* {/Transaction Tabl/} */}
+      {/* Transaction Table */}
       <div className="rounded-md border bg-card shadow-sm">
         <Table>
           <TableHeader>
@@ -276,7 +289,9 @@ const TransactionTable = ({ transactions }) => {
                     </span>
                   </TableCell>
                   <TableCell
-                    className={`text-right font-medium ${transaction.type === 'EXPENSE' ? 'text-red-500' : 'text-green-500'}`}
+                    className={`text-right font-medium ${
+                      transaction.type === 'EXPENSE' ? 'text-red-500' : 'text-green-500'
+                    }`}
                   >
                     {transaction.type === 'EXPENSE' ? '-' : '+'}${transaction.amount.toFixed(2)}
                   </TableCell>
@@ -316,7 +331,9 @@ const TransactionTable = ({ transactions }) => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(transaction.id)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEdit(transaction.id)}>
+                          Edit
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive"
