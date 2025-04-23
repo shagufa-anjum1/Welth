@@ -17,9 +17,11 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${inter.className} bg-gray-100 text-gray-900`}>
       {/*header*/}
-        <Header>
+        {/* <Header>
+          
+        </Header> */}
 
-        </Header>
+        <Header />
         <main className='min-h-screen'>{children}</main>
         <Toaster richColors />
         {/*footer*/} 
