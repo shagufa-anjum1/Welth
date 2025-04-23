@@ -8,6 +8,14 @@ import AccountCard from './_components/account-card';
 async function DashboardPage() {
   const accounts = await getUserAccounts();
 
+  const defaultAccount = accounts?.find((account) => account.isDefault);
+
+   // Get budget for default account
+   let budgetData = null;
+   if (defaultAccount) {
+     budgetData = await getCurrentBudget(defaultAccount.id);
+   }
+
   return (
     <div className='px-5'>
 
